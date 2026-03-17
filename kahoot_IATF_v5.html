@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kahoot IATF – Serviacero Worthington</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(150deg,#2d0a6e,#160430);min-height:100vh;color:white}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pop{0%{transform:scale(0.75);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  @keyframes flash{0%,100%{opacity:1}50%{opacity:0.4}}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+  .screen.active{display:flex}
+  .btn-green{background:#46d369;color:white;border:none;border-radius:12px;padding:15px 48px;font-size:19px;font-weight:900;cursor:pointer;box-shadow:0 5px 0 #2a7d3e;letter-spacing:1px;transition:transform .15s;width:100%}
+  .btn-green:active{transform:scale(0.97)}
+  .btn-outline{background:transparent;color:#c9a0ff;border:2px solid #c9a0ff;border-radius:10px;padding:11px 28px;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;width:100%}
+  .btn-outline:active{background:rgba(201,160,255,0.1)}
+  .tile{border:none;border-radius:12px;padding:14px 16px;font-size:clamp(12px,3.2vw,15px);font-weight:700;color:white;text-align:left;display:flex;align-items:center;gap:10px;cursor:pointer;min-height:72px;line-height:1.35;transition:transform .13s,background .25s,opacity .25s;width:100%}
+  .tile:active{transform:scale(0.97)}
+  input[type=text]{width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-size:18px;font-weight:700;outline:none;text-align:center;transition:border .2s}
+  input[type=text]::placeholder{color:rgba(255,255,255,0.35)}
+  input[type=text]:focus{border-color:#c9a0ff}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;margin-bottom:8px;animation:slideUp .4s ease}
+  .setup-step{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:14px 18px;margin-bottom:10px;text-align:left}
+  .step-num{display:inline-block;background:#c9a0ff;color:#160430;border-radius:50%;width:22px;height:22px;font-size:12px;font-weight:900;text-align:center;line-height:22px;margin-right:8px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ====== PIN ====== -->
+<div id="pin-screen" class="screen active">
+  <div style="font-size:52px;margin-bottom:12px;animation:pop .5s ease">🔑</div>
+  <h1 style="font-size:22px;font-weight:900;text-align:center;margin-bottom:4px">Kahoot IATF</h1>
+  <p style="color:#c9a0ff;font-size:13px;text-align:center;margin-bottom:28px">Serviacero Worthington · Ingresa el código del curso</p>
+  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px">
+    <input type="text" id="pin-input" placeholder="Código del curso" maxlength="10"
+      style="font-size:26px;letter-spacing:8px;text-align:center"
+      onkeydown="if(event.key==='Enter')checkPin()"/>
+    <div id="pin-error" style="display:none;color:#e21b3c;font-weight:700;font-size:14px;text-align:center;animation:pop .3s ease">❌ Código incorrecto</div>
+    <button class="btn-green" onclick="checkPin()">Entrar →</button>
+  </div>
+</div>
+
+<!-- ====== MODO SELECTOR ====== -->
+<div id="mode-screen" class="screen">
+  <div style="font-size:58px;animation:pulse 2s infinite;margin-bottom:10px">🏆</div>
+  <h1 style="font-size:clamp(18px,5vw,28px);font-weight:900;text-align:center;margin-bottom:4px">ISO 9001 &amp; IATF 16949</h1>
+  <p style="color:#c9a0ff;font-size:13px;font-weight:600;margin-bottom:8px;text-align:center">Serviacero Worthington · Capacitación de Calidad</p>
+  <div style="background:rgba(255,200,0,0.12);border:1px solid rgba(255,200,0,0.3);border-radius:10px;padding:8px 18px;margin-bottom:24px;text-align:center">
+    <span style="color:#FFD700;font-size:13px;font-weight:700">⏳ Tiempo estimado: 10–12 min · 20 preguntas</span>
+  </div>
+  <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px">
+    <button class="btn-green" onclick="showScreen('name-screen')" style="font-size:20px;padding:18px">📱 Soy jugador</button>
+    <button class="btn-outline" onclick="startRanking()">📺 Ver ranking en vivo</button>
+
+  </div>
+</div>
+
+<!-- ====== NOMBRE ====== -->
+<div id="name-screen" class="screen">
+  <div style="font-size:52px;margin-bottom:12px">👤</div>
+  <h2 style="font-size:22px;font-weight:900;margin-bottom:6px">¿Cómo te llamas?</h2>
+  <p style="color:#c9a0ff;font-size:13px;margin-bottom:24px">Tu nombre aparecerá en el ranking en vivo</p>
+  <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px">
+    <input type="text" id="player-name" placeholder="Tu nombre completo" maxlength="30" onkeydown="if(event.key==='Enter')startGame()"/>
+    <button class="btn-green" onclick="startGame()">¡Comenzar! →</button>
+    <button class="btn-outline" onclick="showScreen('mode-screen')">← Atrás</button>
+  </div>
+</div>
+
+<!-- ====== PREGUNTA ====== -->
+<div id="question-screen" class="screen" style="justify-content:flex-start;padding:0">
+  <div style="width:100%;background:rgba(0,0,0,.45);padding:10px 18px;display:flex;justify-content:space-between;align-items:center">
+    <span id="q-counter" style="color:#c9a0ff;font-weight:700;font-size:13px"></span>
+    <div id="dots" style="display:flex;gap:4px;flex-wrap:wrap;max-width:160px;justify-content:center"></div>
+    <span id="score-display" style="color:#FFD700;font-weight:800;font-size:14px">⭐ 0</span>
+  </div>
+  <div style="width:100%;height:7px;background:rgba(255,255,255,.1)">
+    <div id="timer-bar" style="height:100%;width:100%;background:#46d369;border-radius:0 4px 4px 0;transition:width 1s linear,background .4s"></div>
+  </div>
+  <div style="margin:10px 0 4px;display:flex;justify-content:center">
+    <div id="timer-num" style="width:46px;height:46px;border-radius:50%;background:#46d369;color:white;font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.4);transition:background .4s">20</div>
+  </div>
+  <div style="width:100%;max-width:640px;padding:0 14px;align-self:center">
+    <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:16px 20px;margin-bottom:12px;text-align:center">
+      <div id="q-topic" style="font-size:10px;color:#c9a0ff;font-weight:700;letter-spacing:1px;margin-bottom:6px;text-transform:uppercase"></div>
+      <p id="q-text" style="font-size:clamp(13px,3.8vw,18px);font-weight:800;line-height:1.4"></p>
+    </div>
+    <div id="options" style="display:grid;grid-template-columns:1fr 1fr;gap:9px;padding-bottom:12px"></div>
+  </div>
+  <div id="feedback" style="display:none;width:100%;max-width:640px;padding:0 14px 20px;align-self:center;animation:pop .4s ease">
+    <div id="feedback-box" style="border-radius:12px;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div>
+        <div id="feedback-title" style="font-weight:900;font-size:17px"></div>
+        <div id="feedback-correct" style="font-size:12px;color:#ddd;margin-top:3px"></div>
+      </div>
+      <div id="feedback-pts" style="color:#FFD700;font-weight:900;font-size:19px"></div>
+    </div>
+    <button id="next-btn" class="btn-green" style="padding:13px;font-size:16px" onclick="nextQuestion()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- ====== FINAL JUGADOR ====== -->
+<div id="final-screen" class="screen">
+  <div id="medal-emoji" style="font-size:68px;animation:pop .5s ease;margin-bottom:6px"></div>
+  <h2 id="medal-title" style="font-size:clamp(17px,5vw,26px);font-weight:900;text-align:center;margin-bottom:4px"></h2>
+  <p id="final-name-lbl" style="color:#c9a0ff;font-size:14px;margin-bottom:16px"></p>
+  <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:18px 28px;margin-bottom:14px;display:flex;gap:22px;flex-wrap:wrap;justify-content:center;text-align:center">
+    <div><div id="final-score" style="font-size:32px;font-weight:900;color:#FFD700"></div><div style="color:#c9a0ff;font-size:11px;font-weight:600">PUNTOS</div></div>
+    <div><div id="final-correct" style="font-size:32px;font-weight:900;color:#46d369"></div><div style="color:#c9a0ff;font-size:11px;font-weight:600">CORRECTAS</div></div>
+    <div><div id="final-pct" style="font-size:32px;font-weight:900"></div><div style="color:#c9a0ff;font-size:11px;font-weight:600">ACIERTO</div></div>
+  </div>
+  <div id="approval-badge" style="border-radius:12px;padding:10px 24px;margin-bottom:14px;text-align:center;font-weight:800;font-size:15px;width:100%;max-width:400px"></div>
+  <p id="saved-msg" style="font-size:12px;margin-bottom:16px;text-align:center;line-height:1.5">📊 Guardando resultado...</p>
+  <button class="btn-green" onclick="showScreen('name-screen')" style="max-width:360px;font-size:16px;padding:13px">Siguiente persona →</button>
+</div>
+
+<!-- ====== RANKING EN VIVO ====== -->
+<div id="ranking-screen" class="screen" style="justify-content:flex-start;padding:0">
+  <div style="width:100%;background:rgba(0,0,0,0.55);padding:14px 22px;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-weight:900;font-size:18px">🏆 Ranking en Vivo</div>
+      <div style="color:#c9a0ff;font-size:12px">ISO 9001 &amp; IATF 16949 · Serviacero Worthington</div>
+    </div>
+    <div style="text-align:right">
+      <div id="rank-count" style="color:#46d369;font-weight:800;font-size:15px"></div>
+      <div id="rank-status" style="color:rgba(255,255,255,0.35);font-size:11px">actualizando...</div>
+    </div>
+  </div>
+  <div style="width:100%;max-width:700px;align-self:center;padding:16px 16px 80px;flex:1;overflow-y:auto">
+    <div id="rank-list"></div>
+    <div id="rank-empty" style="text-align:center;padding:60px 0;color:rgba(255,255,255,0.3)">
+      <div style="font-size:48px;margin-bottom:12px">⏳</div>
+      <div style="font-size:16px;font-weight:600">Esperando jugadores...</div>
+      <div style="font-size:13px;margin-top:6px">Los resultados aparecerán aquí en tiempo real</div>
+    </div>
+  </div>
+  <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:rgba(0,0,0,0.6);display:flex;gap:10px;justify-content:center">
+    <button onclick="limpiarRanking()" style="background:rgba(226,27,60,0.3);border:1px solid rgba(226,27,60,0.5);color:white;border-radius:10px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer">🗑 Limpiar ranking</button>
+    <button onclick="showScreen('mode-screen')" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:10px;padding:9px 20px;font-size:13px;cursor:pointer">← Salir</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  PREGUNTAS
+// ═══════════════════════════════════════════
+const questions = [
+  {topic:"Normas Base",q:"¿Qué es la norma ISO 9001 y para qué sirve?",opts:["Norma para controlar únicamente inventarios","Norma exclusiva para empresas automotrices","Norma internacional que mejora procesos y asegura la calidad","Herramienta para calcular costos de producción"],ans:2},
+  {topic:"Normas Base",q:"¿Qué es la IATF 16949:2016?",opts:["Un reglamento interno de seguridad industrial","Una norma de gestión de calidad para la industria automotriz","Un sistema para controlar asistencia del personal","Una certificación ambiental para empresas de acero"],ans:1},
+  {topic:"Normas Base",q:"¿Por qué es importante que Serviacero Worthington esté certificado en IATF 16949?",opts:["Porque elimina por completo todos los errores","Porque solo sirve para auditorías internas","Porque reemplaza todos los procedimientos de trabajo","Ayuda a cumplir requisitos del cliente, mejorar procesos y competir en automotriz"],ans:3},
+  {topic:"Sistema de Calidad",q:"¿Qué son los Objetivos de Calidad?",opts:["Actividades de mantenimiento preventivo","Reglas para sancionar operadores","Reportes diarios de producción","Metas que guían a la empresa para cumplir la política de calidad"],ans:3},
+  {topic:"Sistema de Calidad",q:"¿Para qué sirven los KPI dentro del sistema de calidad?",opts:["Para reemplazar auditorías","Para contratar personal nuevo","Para modificar productos sin autorización","Medir desempeño, detectar áreas de mejora y dar seguimiento a objetivos"],ans:3},
+  {topic:"Sistema de Calidad",q:"¿Qué son las Instrucciones de Trabajo?",opts:["Órdenes verbales del supervisor","Documentos que describen paso a paso cómo realizar una tarea correctamente","Reportes de auditoría interna","Listas de materiales necesarios"],ans:1},
+  {topic:"Sistema de Calidad",q:"¿Qué es el Plan de Control en IATF?",opts:["Un calendario de vacaciones del personal","Un presupuesto anual de producción","Documento que describe cómo controlar las características del producto en cada etapa","Un reglamento de seguridad industrial"],ans:2},
+  {topic:"Riesgos y Mejora",q:"¿Qué es un riesgo dentro de la IATF?",opts:["Una mejora confirmada en el proceso","Una auditoría terminada","Una situación que puede causar problemas en los procesos","Un formato de producción diario"],ans:2},
+  {topic:"Riesgos y Mejora",q:"¿Cuál es un ejemplo de riesgo en los procesos?",opts:["Realizar una auditoría de calidad exitosa","Capacitar al personal en nuevos procedimientos","Material mal identificado o equipo sin mantenimiento","Cumplir todos los objetivos de calidad del mes"],ans:2},
+  {topic:"Riesgos y Mejora",q:"¿Qué es una No Conformidad?",opts:["Un operador que llega tarde","Un incumplimiento de un requisito establecido","Una propuesta de mejora aprobada","Un reporte de ventas negativo"],ans:1},
+  {topic:"Riesgos y Mejora",q:"¿Qué es una Acción Correctiva?",opts:["Una sanción al personal responsable","Un formato para solicitar materiales","Una acción para eliminar la causa raíz de una no conformidad y evitar que se repita","Un reporte diario de producción"],ans:2},
+  {topic:"Riesgos y Mejora",q:"¿Qué es el concepto de Mejora Continua en IATF?",opts:["Cambiar procesos cada semana sin análisis","Contratar más personal constantemente","Reducir costos eliminando controles de calidad","Esfuerzo constante para mejorar productos, procesos y el sistema de gestión"],ans:3},
+  {topic:"Organización",q:"¿Cuál es el contexto de la organización de Serviacero Worthington?",opts:["Empresa dedicada únicamente al transporte","Empresa pequeña con una sola planta","Empresa de procesamiento y comercialización de aceros planos con varios centros","Empresa enfocada en compras de acero nacionales e internacionales"],ans:2},
+  {topic:"Organización",q:"¿Qué son las partes interesadas dentro de la organización?",opts:["Únicamente los directores de la empresa","Solo los clientes y proveedores","Solamente el personal operativo","Personas o grupos relacionados con la empresa o afectados por sus resultados"],ans:3},
+  {topic:"Organización",q:"¿Qué es el Sistema de Trabajo SW 2.5 y para qué sirve el Kiosko ST?",opts:["Sistema de nómina; el kiosko sirve para checar entrada","Política de compras; el kiosko sirve para autorizar materiales","Forma estándar de trabajar; el Kiosko ST consulta info del proceso en cada estación","Sistema de seguridad; el kiosko sirve para reportar accidentes"],ans:2},
+  {topic:"Herramientas Técnicas",q:"¿Qué significa AMEF (o FMEA en inglés)?",opts:["Análisis de Mejora de Equipos y Formatos","Análisis de Modo y Efecto de Falla","Auditoría de Materiales y Evaluación Final","Acuerdo de Manufactura con Estándares Fijos"],ans:1},
+  {topic:"Herramientas Técnicas",q:"¿Qué es el MSA (Análisis del Sistema de Medición)?",opts:["Manual de Seguridad Automotriz","Método de Seguimiento de Auditorías","Evaluación de la confiabilidad y precisión de los equipos de medición en producción","Módulo de Supervisión de Almacén"],ans:2},
+  {topic:"Herramientas Técnicas",q:"¿Qué es el SPC (Control Estadístico de Proceso)?",opts:["Sistema de Pagos y Compensaciones","Herramienta estadística para monitorear y controlar la variación en los procesos","Supervisión de Personal en Campo","Sistema de Proveedores Certificados"],ans:1},
+  {topic:"Cliente y Auditoría",q:"¿Qué es el concepto de 'Voz del Cliente' en calidad?",opts:["Las quejas publicadas en redes sociales","Las instrucciones del gerente de ventas","Las necesidades y expectativas del cliente que deben traducirse en requisitos del producto","El resultado de encuestas de clima laboral"],ans:2},
+  {topic:"Cliente y Auditoría",q:"¿Qué es una Auditoría Interna?",opts:["Una revisión hecha por el cliente","Una inspección del gobierno","Una evaluación sistemática interna para verificar que el sistema de calidad funciona","Un conteo de inventario mensual"],ans:2},
+];
+
+// ═══════════════════════════════════════════
+//  CONFIG JSONBIN  (credenciales embebidas)
+// ═══════════════════════════════════════════
+const BIN_ID  = '69b8634caa77b81da9ee2aa6';
+const API_KEY = '$2a$10$Pqhh6ATtm/pZZrgU0HkeQ.neQRLZOU3f9f/4pmmr.GdHpAvn16N3e';
+const PIN_CORRECTO = '1234';
+let rankingInterval = null;
+
+async function jbGet(){
+  const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+    headers:{'X-Access-Key': API_KEY}
+  });
+  if(!r.ok) throw new Error('jbGet failed: '+r.status);
+  const d = await r.json();
+  return d.record;
+}
+
+async function jbSet(data){
+  const r = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+    method:'PUT',
+    headers:{
+      'Content-Type':'application/json',
+      'X-Access-Key': API_KEY
+    },
+    body: JSON.stringify(data)
+  });
+  if(!r.ok) throw new Error('jbSet failed: '+r.status);
+}
+
+// ═══════════════════════════════════════════
+//  PIN
+// ═══════════════════════════════════════════
+function checkPin(){
+  const val = document.getElementById('pin-input').value.trim();
+  if(val === PIN_CORRECTO){
+    showScreen('mode-screen');
+  } else {
+    const err = document.getElementById('pin-error');
+    err.style.display = 'block';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
+    setTimeout(()=>{ err.style.display='none'; }, 2000);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  NAVEGACIÓN
+// ═══════════════════════════════════════════
+function showScreen(id){
+  clearInterval(rankingInterval);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+window.onload = () => {
+  showScreen('pin-screen');
+};
+
+// ═══════════════════════════════════════════
+//  JUEGO
+// ═══════════════════════════════════════════
+const TIMER=20;
+const COLORS=["#E21B3C","#1368CE","#D89E00","#26890C"];
+const SHADOWS=["#8a0f23","#0a3d7a","#7a5500","#144d07"];
+const SHAPES=["▲","◆","●","■"];
+
+let playerName='',idx=0,score=0,time=TIMER,locked=false,timerInt=null,results=[],startTime=null;
+
+function startGame(){
+  const n=document.getElementById('player-name').value.trim();
+  if(!n){alert('Por favor escribe tu nombre');return;}
+  playerName=n; idx=0; score=0; locked=false; results=[]; startTime=Date.now();
+  updateScoreDisplay();
+  showScreen('question-screen');
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timerInt); locked=false; time=TIMER;
+  const q=questions[idx];
+  document.getElementById('q-counter').textContent=`Pregunta ${idx+1} / ${questions.length}`;
+  document.getElementById('q-topic').textContent=q.topic;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('feedback').style.display='none';
+
+  const dots=document.getElementById('dots');
+  dots.innerHTML='';
+  questions.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText=`width:6px;height:6px;border-radius:50%;background:${i<idx?'#46d369':i===idx?'white':'rgba(255,255,255,0.2)'}`;
+    dots.appendChild(d);
+  });
+
+  const opts=document.getElementById('options');
+  opts.innerHTML='';
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='tile';
+    btn.style.background=COLORS[i];
+    btn.style.boxShadow=`0 5px 0 ${SHADOWS[i]}`;
+    btn.innerHTML=`<span style="font-size:17px;flex-shrink:0">${SHAPES[i]}</span><span>${opt}</span>`;
+    btn.onclick=()=>submit(i);
+    opts.appendChild(btn);
+  });
+
+  updateTimer();
+  timerInt=setInterval(()=>{ time--; updateTimer(); if(time<=0){clearInterval(timerInt);submit(null);} },1000);
+}
+
+function updateTimer(){
+  const pct=(time/TIMER)*100;
+  const color=pct>50?'#46d369':pct>25?'#e8a020':'#e21b3c';
+  document.getElementById('timer-bar').style.width=pct+'%';
+  document.getElementById('timer-bar').style.background=color;
+  const num=document.getElementById('timer-num');
+  num.textContent=time; num.style.background=color;
+  num.style.animation=time<=5?'flash 0.6s infinite':'none';
+}
+
+function updateScoreDisplay(){
+  document.getElementById('score-display').textContent='⭐ '+score.toLocaleString();
+}
+
+function submit(sel){
+  if(locked)return;
+  locked=true; clearInterval(timerInt);
+  const q=questions[idx];
+  const ok=sel===q.ans;
+  const pts=ok?Math.round(500+(time/TIMER)*500):0;
+  score+=pts; results.push({ok,pts});
+  updateScoreDisplay();
+
+  document.getElementById('options').querySelectorAll('.tile').forEach((t,i)=>{
+    t.disabled=true; t.style.boxShadow='none'; t.style.cursor='default';
+    if(i===q.ans){t.style.border='3px solid white';t.style.transform='scale(1.03)';}
+    else if(i===sel&&i!==q.ans){t.style.background='#555';}
+    else if(i!==q.ans){t.style.opacity='0.4';}
+  });
+
+  const fbox=document.getElementById('feedback-box');
+  fbox.style.background=ok?'rgba(70,211,105,0.2)':'rgba(226,27,60,0.2)';
+  fbox.style.border=`2px solid ${ok?'#46d369':'#e21b3c'}`;
+  document.getElementById('feedback-title').textContent=ok?'✅ ¡Correcto!':'❌ Incorrecto';
+  document.getElementById('feedback-correct').textContent=ok?'':`Respuesta: ${SHAPES[q.ans]} ${q.opts[q.ans]}`;
+  document.getElementById('feedback-pts').textContent=ok?`+${pts} pts`:'';
+  document.getElementById('next-btn').textContent=idx+1>=questions.length?'Ver mi resultado →':'Siguiente →';
+  document.getElementById('feedback').style.display='block';
+}
+
+function nextQuestion(){
+  if(idx+1>=questions.length){finishGame();return;}
+  idx++; loadQuestion();
+}
+
+async function finishGame(){
+  clearInterval(timerInt);
+  const elapsed=Math.round((Date.now()-startTime)/1000);
+  const correct=results.filter(r=>r.ok).length;
+  const pct=Math.round((correct/questions.length)*100);
+  const p=score/(questions.length*1000);
+
+  // Guardar en JSONBin
+  let guardadoOk = false;
+  try {
+    if(!BIN_ID || !API_KEY) throw new Error('Sin configuración');
+    const data = await jbGet();
+    const lista = data.resultados || [];
+    lista.push({
+      nombre: playerName,
+      puntos: score,
+      correctas: correct,
+      total: questions.length,
+      porcentaje: pct,
+      tiempo: elapsed,
+      fecha: new Date().toLocaleString('es-MX')
+    });
+    await jbSet({resultados: lista});
+    guardadoOk = true;
+  } catch(e){ 
+    console.error('Error al guardar:', e);
+    alert('Error detallado: ' + e.message);
+  }
+
+  // Mostrar aviso si no se pudo guardar
+  const savedMsg = document.getElementById('saved-msg');
+  if(guardadoOk){
+    savedMsg.textContent = '📊 Resultado guardado en el ranking ✅';
+    savedMsg.style.color = '#46d369';
+  } else {
+    savedMsg.innerHTML = '⚠️ No se pudo guardar en el ranking.<br><span style="font-size:11px">Verifica tu BIN ID y API Key en ⚙️ Reconfigurar</span>';
+    savedMsg.style.color = '#e21b3c';
+  }
+
+  // Pantalla final
+  let em,title,col;
+  if(p>=0.85){em='🥇';title='¡Experto en Calidad!';col='#FFD700';}
+  else if(p>=0.65){em='🥈';title='¡Buen dominio!';col='#C0C0C0';}
+  else if(p>=0.40){em='🥉';title='Vas por buen camino';col='#CD7F32';}
+  else{em='📚';title='Sigue repasando';col='#9B59B6';}
+
+  document.getElementById('medal-emoji').textContent=em;
+  document.getElementById('medal-title').textContent=title;
+  document.getElementById('medal-title').style.color=col;
+  document.getElementById('final-name-lbl').textContent=playerName;
+  document.getElementById('final-score').textContent=score.toLocaleString();
+  document.getElementById('final-correct').textContent=`${correct}/${questions.length}`;
+  document.getElementById('final-pct').textContent=pct+'%';
+  document.getElementById('final-pct').style.color=pct>=70?'#46d369':'#e21b3c';
+
+  const badge=document.getElementById('approval-badge');
+  if(pct>=70){
+    badge.style.cssText='border-radius:12px;padding:10px 24px;margin-bottom:14px;text-align:center;font-weight:800;font-size:15px;width:100%;max-width:400px;background:rgba(70,211,105,0.2);border:2px solid #46d369;color:#46d369';
+    badge.textContent='✅ APROBADO';
+  } else {
+    badge.style.cssText='border-radius:12px;padding:10px 24px;margin-bottom:14px;text-align:center;font-weight:800;font-size:15px;width:100%;max-width:400px;background:rgba(226,27,60,0.2);border:2px solid #e21b3c;color:#ff6b6b';
+    badge.textContent=`❌ NO APROBADO — te faltó ${70-pct}%`;
+  }
+
+  showScreen('final-screen');
+}
+
+// ═══════════════════════════════════════════
+//  RANKING EN VIVO
+// ═══════════════════════════════════════════
+const MEDALS=['🥇','🥈','🥉'];
+
+async function fetchRanking(){
+  try {
+    document.getElementById('rank-status').textContent='actualizando...';
+    const data = await jbGet();
+    const arr = (data.resultados || []).sort((a,b)=>b.puntos-a.puntos);
+    renderRanking(arr);
+    document.getElementById('rank-status').textContent='en vivo ●';
+    document.getElementById('rank-status').style.color='#46d369';
+  } catch(e){
+    document.getElementById('rank-status').textContent='error al conectar';
+    document.getElementById('rank-status').style.color='#e21b3c';
+  }
+}
+
+function renderRanking(arr){
+  const list=document.getElementById('rank-list');
+  const empty=document.getElementById('rank-empty');
+  const count=document.getElementById('rank-count');
+
+  if(!arr.length){ list.innerHTML=''; empty.style.display='block'; count.textContent=''; return; }
+  empty.style.display='none';
+  count.textContent=`${arr.length} participante${arr.length!==1?'s':''}`;
+
+  list.innerHTML='';
+  arr.forEach((r,i)=>{
+    const isTop=i<3;
+    const row=document.createElement('div');
+    row.className='rank-row';
+    row.style.background=i===0?'rgba(255,215,0,0.13)':i===1?'rgba(192,192,192,0.09)':i===2?'rgba(205,127,50,0.09)':'rgba(255,255,255,0.06)';
+    if(isTop) row.style.border=`1px solid ${['rgba(255,215,0,0.35)','rgba(192,192,192,0.25)','rgba(205,127,50,0.25)'][i]}`;
+    const pctColor=r.porcentaje>=70?'#46d369':'#e21b3c';
+    const mins=Math.floor(r.tiempo/60), secs=r.tiempo%60;
+    const tStr=mins>0?`${mins}m ${secs}s`:`${secs}s`;
+    row.innerHTML=`
+      <div style="font-size:${isTop?'26':'17'}px;width:30px;text-align:center;flex-shrink:0">${isTop?MEDALS[i]:`<span style="color:rgba(255,255,255,0.35);font-weight:700">${i+1}</span>`}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:clamp(14px,3.5vw,17px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.nombre}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">${r.correctas}/${r.total} · ⏱${tStr} · ${r.fecha}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="color:#FFD700;font-weight:900;font-size:clamp(15px,4vw,21px)">${r.puntos.toLocaleString()}</div>
+        <div style="font-size:12px;font-weight:700;color:${pctColor}">${r.porcentaje}% ${r.porcentaje>=70?'✅':'❌'}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+}
+
+function startRanking(){
+  showScreen('ranking-screen');
+  fetchRanking();
+  rankingInterval=setInterval(fetchRanking,5000);
+}
+
+async function limpiarRanking(){
+  if(!confirm('¿Seguro que quieres borrar todos los resultados?'))return;
+  await jbSet({resultados:[]});
+  fetchRanking();
+}
+</script>
+</body>
+</html>
